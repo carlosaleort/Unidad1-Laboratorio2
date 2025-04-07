@@ -1,6 +1,7 @@
 
 using UnityEngine;
 using System.Collections;
+
 namespace Assets.JSGAONA.Unidad1.Scripts {
 
     // Se emplea para obligar al GameObject asignar el componente para su correcto funcionamiento
@@ -9,6 +10,7 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
     // Se emplea este script para gestionar el controlador del personaje jugable
     public class PlayerController : MonoBehaviour {
         
+        // Variables visibles desde el inspector de Unity
         [Header("Adjust movement")]
         [SerializeField] private float speedMove;
         [SerializeField] private float speedRotation;
@@ -23,22 +25,26 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         [SerializeField] private float groundCheckDistance = 0.0f;
         [SerializeField] private LayerMask ignoreLayer;
 
+        [Header("Ajust Dash")]
+        [SerializeField] private float dashWallDetec = 0.7f;
+        [SerializeField] private float offsetTop = 0.25f;
+        [SerializeField] private float offsetBottom = 0.25f;
+        [SerializeField] private float dashDuration = 0.2f;
+        [SerializeField] private float dashDistance = 5f;
+        [SerializeField] private float dashCooldown = 1f;
+
         // Variables ocultas desde el inspector de Unity
-        private readonly float gravity = -9.8f;
+        private bool onGround = false;
+        private bool isDashing = false;
+        private bool dashInCooldown = false;
         private int currentJumpCount = 0;
-        public bool onGround = false;
-        public float fallVelocity = 0;
+        private float fallVelocity = 0;
+        private readonly float gravity = -9.8f;
         private Vector3 dirMove;
         private Vector3 positionFoot;
         private CharacterController charController;
-        // Dash
-        [SerializeField] private float dashDistance = 5f;
-        [SerializeField] private float dashDuration = 2f;
-        [SerializeField] private float dashCooldown = 3f;
-        [SerializeField] private LayerMask obstacleLayers;
+        private Vector3 lastCheckpointPosition;
 
-        private bool isDashing = false;
-        private bool canDash = true;
 
 
         // Metodo de llamada de Unity, se llama una unica vez al iniciar el app, es el primer
@@ -51,42 +57,30 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         // Metodo de llamada de Unity, se llama en cada frame del computador
         // Se realiza la logica de control del personaje jugable
         private void Update() {
-            dirMove = new Vector3(joystick.Horizontal, 0, joystick.Vertical).normalized;
+            // No se esta realiznado un dash
+            if(!isDashing) {
+                dirMove = new Vector3(joystick.Horizontal, 0, joystick.Vertical).normalized;
 
-            // ****************** 2) Mecánica de dash o movimiento rápido ****************** //
+                // Esta conectado a tierra
+                if(onGround){
+                    fallVelocity = Mathf.Max(minFallVelocity, fallVelocity + gravity * Time.deltaTime);
+                
+                // No esta conectado a tierra, por ende se esta en el aire
+                }else {
+                    fallVelocity += gravity  * gravityMultiplier * Time.deltaTime;
+                }
 
-            // Esta conectado a tierra
-            if(onGround){
-                fallVelocity = Mathf.Max(minFallVelocity, fallVelocity + gravity * Time.deltaTime);
-            
-            // No esta conectado a tierra, por ende se esta en el aire
-            }else {
-                fallVelocity += gravity  * gravityMultiplier * Time.deltaTime;
+                // Rotacion del personaje
+                if (dirMove != Vector3.zero) {
+                    Quaternion targetRotation = Quaternion.LookRotation(dirMove);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speedRotation);
+                }
+                dirMove *= speedMove;
+                dirMove.y = fallVelocity;
             }
-
-            // Rotacion del personaje
-            if (dirMove != Vector3.zero) {
-                Quaternion targetRotation = Quaternion.LookRotation(dirMove);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speedRotation);
-            }
-
-            dirMove *= speedMove;
-            dirMove.y = fallVelocity;
             charController.Move(dirMove * Time.deltaTime);
+        }
 
-            if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && canDash)
-            {
-                StartCoroutine(PerformDash());
-            }
-            if (isDashing) return;
-        }
-        public void DashButton()
-        {
-            if (!isDashing && canDash)
-            {
-                StartCoroutine(PerformDash());
-            }
-        }
 
         // Metodo de llamada de Unity, se llama en cada actualizacion constante 0.02 seg
         // Se realiza la logica de gestion de fisicas del motor
@@ -98,9 +92,8 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
 
         // Metodo publico que se emplea para gestionar los saltos del personaje
         public void Jump() {
-            if (isDashing) return;
             // Esta conectado a tierra
-            if (onGround) {
+            if(onGround) {
                 onGround = false;
                 CountJump(false);
             
@@ -120,50 +113,102 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
             currentJumpCount = accumulate ? (currentJumpCount + 1): 1;
             fallVelocity = jumpForce;
         }
-        private IEnumerator PerformDash()
-        {
-            // Dirección del dash (hacia donde mira el jugador)
-            Vector3 dashDirection = transform.forward;
 
-            // Verificar si hay obstáculo
-            if (Physics.Raycast(transform.position, dashDirection, dashDistance, obstacleLayers))
-            {
-                yield break; // Hay un obstáculo enfrente, no hacer dash
+
+        // Metodo que se emplea para poder generar el dash del personaje
+        public void Dash() {
+            // Se valida que no se este realizando un dash, o el dash este en enfiramiento
+            if(!isDashing && !dashInCooldown) {
+                StartCoroutine(StartDash());
             }
+        }
 
+
+        // Coroutina que permite dar inicio al movimiento de desplazamiento
+        private IEnumerator StartDash() {
+            // Lanza un rayo desde el personaje hacia alfrente en la direccion donde esta mirando
+            if(DetectWallDuringDash()) yield break;
+            dashInCooldown = true;
             isDashing = true;
-            canDash = false;
-
-            float timeElapsed = 0f;
-            float speed = dashDistance / dashDuration;
-
-            // Guardar la posición Y para evitar que la gravedad lo afecte
-            float initialY = transform.position.y;
-
-            while (timeElapsed < dashDuration)
-            {
-                Vector3 move = dashDirection * speed * Time.deltaTime;
-                move.y = 0; // evitar que suba o baje
-                charController.Move(move);
-                timeElapsed += Time.deltaTime;
+            fallVelocity = 0;
+            // Establece la direccion del dash
+            Vector3 dashVector = dashDistance * transform.forward;
+            float elapsedTime = 0;
+            // Ciclo repetitivo que permite dar movimiento al dash
+            while (elapsedTime < dashDuration) {
+                // Se valida si el pj ha detectado una pared
+                if (DetectWallDuringDash()) {
+                    // Se sale del efecto de dash
+                    break;
+                }
+                // Aplicar la nueva posicion
+                dirMove = dashVector / dashDuration;
+                elapsedTime += Time.deltaTime;
                 yield return null;
             }
-
+            dirMove = Vector3.zero;
+            // Se asigna la posicion objetivo al finalizar el dash
             isDashing = false;
-
-            // Cooldown
+            // Espera que termine el tiempo de enfriamiento del dash
             yield return new WaitForSeconds(dashCooldown);
-            canDash = true;
+            dashInCooldown = false;
         }
+
+
+        // Se emplea este metodo para verificar si existe una pared durante el dash
+        private bool DetectWallDuringDash(){
+            // Se instancia la direccion de los rayos hacia arriba y abajo del personaje
+            Vector3 rayOriginTop = transform.position + (Vector3.up * offsetTop);
+            Vector3 rayOriginBot = transform.position + (Vector3.down * offsetBottom);
+            // Lanza un rayo desde el personaje hacia alfrente en la direccion donde esta mirando
+            return HitDetectedWallOnDash(rayOriginTop) || HitDetectedWallOnDash(rayOriginBot);
+        }
+
+
+        // Se emplea este metodo para verificar la existencia de pared si un raycast lo detecta
+        private bool HitDetectedWallOnDash(Vector3 originRay){
+            // permite verificar una pared en funcion del dash
+            return Physics.Raycast(originRay, transform.forward, dashWallDetec, ~ignoreLayer);
+        }
+
+        public void SetCheckpoint(Vector3 checkpointPosition)
+        {
+            lastCheckpointPosition = checkpointPosition;
+        }
+
+        public void ReturnToCheckpoint()
+        {
+            StopAllCoroutines(); // Cancela dash si estaba activo
+            isDashing = false;
+            dashInCooldown = false;
+            fallVelocity = 0;
+
+            // Teletransporta al jugador de forma segura
+            charController.enabled = false;
+            transform.position = lastCheckpointPosition;
+            charController.enabled = true;
+        }
+
 
 #if UNITY_EDITOR
         // Metodo de llamada de Unity, se emplea para visualizar en escena, acciones del codigo
         private void OnDrawGizmos() {
+            // Se genera el gizmos para visualizar la posicion de los pies, validar piso
             Gizmos.color = Color.green;
             positionFoot = transform.position + Vector3.down * groundCheckDistance;
             Gizmos.DrawSphere(positionFoot, radiusDetectedGround);
+
+            // Se genera el gizmos para verificar los raycast del dash
+            Vector3 rayOriginTop = transform.position + Vector3.up * offsetTop;
+            Vector3 rayOriginBot = transform.position + Vector3.down * offsetBottom;
+
+            // Establecer el color del Gizmo
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(rayOriginTop, transform.forward * dashWallDetec);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(rayOriginBot, transform.forward * dashWallDetec);
         }
     #endif
     }
-
 }

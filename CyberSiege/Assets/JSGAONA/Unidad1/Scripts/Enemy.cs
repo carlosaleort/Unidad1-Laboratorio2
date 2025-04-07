@@ -11,15 +11,18 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
     public class Enemy : MonoBehaviour {
         
         // Variables visibles desde el inspector de Unity
-        [SerializeField] private float chaseDistance = 0.5f;
+        [SerializeField] private float speedRotation = 120;
+        [SerializeField] private float chaseDistance = 3.5f;
+        [SerializeField] private float approachDistance = 0.5f;
         [SerializeField] private float updateInterval  = 0.25f;
-        [SerializeField] private float minimumDistanceToPlayer = 1.5f;
+        [SerializeField] private LayerMask obstacleMask; // <--- NUEVA VARIABLE
+
 
         // Variables ocultas desde el inspector de Unity
-        private bool isPlayerInRange = false;
+        public bool isPlayerInRange = false;
+        public bool inRange = false;
         private NavMeshAgent agent;
-        private Transform player;
-        private Vector3 initialPosition;
+        public Transform player;
         public Transform Player { set => player = value; }
 
 
@@ -35,19 +38,19 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         // de Awake, se realiza la asignacion de variables y configuracion del script
         private void Start() {
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
-            StartCoroutine(UpdateEnemyBehavior());
-            initialPosition = transform.position;
+            if(player != null) StartCoroutine(UpdateEnemyBehavior());
         }
         
         // Metodo de llamada de Unity, se llama en el momento de que el GameObject es destruido
         private void OnDestroy() {
-            StopCoroutine(UpdateEnemyBehavior());
+            if(player != null) StopCoroutine(UpdateEnemyBehavior());
         }
 
 
         // Metodo de llamada de Unity, se activa cuando el renderizador del objeto entra en el campo
         // de vision de la camara activa
         private void OnBecameVisible() {
+            enabled = true;
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
         }
 
@@ -55,46 +58,77 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         // Metodo de llamada de Unity, se activa cuando el renderizador del objeto sale del campo de
         // vision de la camara.
         private void OnBecameInvisible() {
+            enabled = false;
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
-        }
-
-
-        // Coroutine para optimizar las actualizaciones
-        private IEnumerator UpdateEnemyBehavior() {
-            while (true)
-            {
-                float distance = Vector3.Distance(transform.position, player.position);
-                isPlayerInRange = distance <= chaseDistance;
-
-                if (isPlayerInRange)
-                {
-                    if (distance <= minimumDistanceToPlayer)
-                    {
-                        // Muy cerca del jugador, detener al agente
-                        agent.ResetPath();
-                    }
-                    else
-                    {
-                        // A distancia segura, seguir al jugador
-                        agent.SetDestination(player.position);
-                    }
-                }
-                else
-                {
-                    // Jugador fuera de rango, regresar a la posici髇 inicial
-                    agent.SetDestination(initialPosition);
-                }
-
-                yield return new WaitForSeconds(updateInterval);
-            }
         }
 
 
         // Metodo de llamada de Unity, se llama en cada frame del computador
         // Se realiza la logica de control del enemigo
         private void Update() {
-            
+            // Se valida que exista una referencia valida del personaje a seguir y este esta a rango
+            if (isPlayerInRange) {
+                // Mira al jugador suavemente
+                Vector3 direction = (player.position - transform.position).normalized;
+                direction.y = 0; // para evitar rotaci贸n vertical
+                if (direction != Vector3.zero) {
+                    Quaternion lookRotation = Quaternion.LookRotation(direction);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation,
+                        speedRotation * Time.deltaTime);
+                }
+                // El enemigo esta en rango de alcance del personaje
+                if(inRange) {
+                    agent.ResetPath();
+                } else {
+                    agent.SetDestination(player.position);
+                }
+            }
         }
+
+
+        // Coroutine para optimizar las actualizaciones
+        private IEnumerator UpdateEnemyBehavior()
+        {
+            while (true)
+            {
+                float distance = Vector3.Distance(transform.position, player.position);
+
+                if (distance <= chaseDistance)
+                {
+                    // Direcci贸n del enemigo al jugador
+                    Vector3 directionToPlayer = (player.position - transform.position).normalized;
+
+                    // Posici贸n del raycast (un poco elevada para evitar errores de suelo)
+                    Vector3 rayOrigin = transform.position;
+
+                    // Lanza raycast hacia el jugador
+                    if (Physics.Raycast(rayOrigin, directionToPlayer, out RaycastHit hit, chaseDistance))
+                    {
+                        // Verifica si el raycast golpe贸 al jugador directamente
+                        if (hit.transform == player)
+                        {
+                            isPlayerInRange = true;
+                        }
+                        else
+                        {
+                            isPlayerInRange = false;
+                        }
+                    }
+                    else
+                    {
+                        isPlayerInRange = false;
+                    }
+                }
+                else
+                {
+                    isPlayerInRange = false;
+                }
+
+                inRange = distance <= approachDistance;
+                yield return new WaitForSeconds(updateInterval);
+            }
+        }
+
+
     }
 }
-       
