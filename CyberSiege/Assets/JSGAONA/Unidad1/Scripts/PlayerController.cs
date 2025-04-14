@@ -34,6 +34,7 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         [SerializeField] private float dashCooldown = 1f;
 
         // Variables ocultas desde el inspector de Unity
+        public bool enableControl = true;
         private bool onGround = false;
         private bool isDashing = false;
         private bool dashInCooldown = false;
@@ -43,7 +44,6 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         private Vector3 dirMove;
         private Vector3 positionFoot;
         private CharacterController charController;
-        private Vector3 lastCheckpointPosition;
 
 
 
@@ -52,34 +52,47 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         private void Awake(){
             charController = GetComponent<CharacterController>();
         }
-        
-        
+
+
         // Metodo de llamada de Unity, se llama en cada frame del computador
         // Se realiza la logica de control del personaje jugable
-        private void Update() {
-            // No se esta realiznado un dash
-            if(!isDashing) {
+        private void Update()
+        {
+            if (enableControl && !isDashing)
+            {
+                // Movimiento horizontal por control
                 dirMove = new Vector3(joystick.Horizontal, 0, joystick.Vertical).normalized;
 
-                // Esta conectado a tierra
-                if(onGround){
-                    fallVelocity = Mathf.Max(minFallVelocity, fallVelocity + gravity * Time.deltaTime);
-                
-                // No esta conectado a tierra, por ende se esta en el aire
-                }else {
-                    fallVelocity += gravity  * gravityMultiplier * Time.deltaTime;
-                }
-
-                // Rotacion del personaje
-                if (dirMove != Vector3.zero) {
+                // Rotación del personaje
+                if (dirMove != Vector3.zero)
+                {
                     Quaternion targetRotation = Quaternion.LookRotation(dirMove);
                     transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speedRotation);
                 }
+
                 dirMove *= speedMove;
+            }
+
+            // Siempre aplicar gravedad, incluso si no hay control
+            if (onGround)
+            {
+                fallVelocity = Mathf.Max(minFallVelocity, fallVelocity + gravity * Time.deltaTime);
+            }
+            else
+            {
+                fallVelocity += gravity * gravityMultiplier * Time.deltaTime;
+            }
+
+            // Solo si no está dashing, aplicamos la caída en Y
+            if (!isDashing)
+            {
                 dirMove.y = fallVelocity;
             }
+
+            // Movimiento global
             charController.Move(dirMove * Time.deltaTime);
         }
+
 
 
         // Metodo de llamada de Unity, se llama en cada actualizacion constante 0.02 seg
@@ -171,26 +184,14 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
             return Physics.Raycast(originRay, transform.forward, dashWallDetec, ~ignoreLayer);
         }
 
-        public void SetCheckpoint(Vector3 checkpointPosition)
-        {
-            lastCheckpointPosition = checkpointPosition;
-        }
 
-        public void ReturnToCheckpoint()
-        {
-            StopAllCoroutines(); // Cancela dash si estaba activo
-            isDashing = false;
-            dashInCooldown = false;
-            fallVelocity = 0;
-
-            // Teletransporta al jugador de forma segura
-            charController.enabled = false;
-            transform.position = lastCheckpointPosition;
-            charController.enabled = true;
+        public void StopMovement(){
+            enableControl = false;
+            dirMove = Vector3.zero;
         }
 
 
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
         // Metodo de llamada de Unity, se emplea para visualizar en escena, acciones del codigo
         private void OnDrawGizmos() {
             // Se genera el gizmos para visualizar la posicion de los pies, validar piso

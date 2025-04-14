@@ -8,15 +8,16 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
     [RequireComponent(typeof(NavMeshAgent))]
 
     // Este script se emplea para gestionar la logica de los enemigos
-    public class Enemy : MonoBehaviour {
+    public class Enemy : MonoBehaviour, IAnulable
+    {
         
         // Variables visibles desde el inspector de Unity
         [SerializeField] private float speedRotation = 120;
         [SerializeField] private float chaseDistance = 3.5f;
         [SerializeField] private float approachDistance = 0.5f;
         [SerializeField] private float updateInterval  = 0.25f;
-        [SerializeField] private LayerMask obstacleMask; // <--- NUEVA VARIABLE
 
+        [SerializeField] private LayerMask includeLayer;
 
         // Variables ocultas desde el inspector de Unity
         public bool isPlayerInRange = false;
@@ -40,7 +41,13 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
             if(player != null) StartCoroutine(UpdateEnemyBehavior());
         }
-        
+
+        public void Anular()
+        {
+            // Lógica para desactivar o inutilizar al enemigo
+            gameObject.SetActive(false); // Ejemplo simple
+        }
+
         // Metodo de llamada de Unity, se llama en el momento de que el GameObject es destruido
         private void OnDestroy() {
             if(player != null) StopCoroutine(UpdateEnemyBehavior());
@@ -87,48 +94,32 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
 
 
         // Coroutine para optimizar las actualizaciones
-        private IEnumerator UpdateEnemyBehavior()
-        {
-            while (true)
-            {
+        private IEnumerator UpdateEnemyBehavior() {
+            // Mientras sea verdad, se ejecuta indefinidamente
+            while (true) {
                 float distance = Vector3.Distance(transform.position, player.position);
-
-                if (distance <= chaseDistance)
-                {
-                    // Dirección del enemigo al jugador
-                    Vector3 directionToPlayer = (player.position - transform.position).normalized;
-
-                    // Posición del raycast (un poco elevada para evitar errores de suelo)
-                    Vector3 rayOrigin = transform.position;
-
-                    // Lanza raycast hacia el jugador
-                    if (Physics.Raycast(rayOrigin, directionToPlayer, out RaycastHit hit, chaseDistance))
-                    {
-                        // Verifica si el raycast golpeó al jugador directamente
-                        if (hit.transform == player)
-                        {
-                            isPlayerInRange = true;
-                        }
-                        else
-                        {
-                            isPlayerInRange = false;
-                        }
-                    }
-                    else
-                    {
-                        isPlayerInRange = false;
-                    }
-                }
-                else
-                {
-                    isPlayerInRange = false;
-                }
-
+                bool playerDetected = distance <= chaseDistance;
                 inRange = distance <= approachDistance;
+
+                // El jugador a ingresado al radio de persecucion
+                if(playerDetected) {
+                    Vector3 directionToPlayer = (player.position - transform.position).normalized;
+                    isPlayerInRange = !Physics.Raycast(transform.position, directionToPlayer,
+                        distance, includeLayer);
+                }
+
                 yield return new WaitForSeconds(updateInterval);
             }
         }
 
 
+    #if UNITY_EDITOR
+        // Metodo de llamada de Unity, se emplea para visualizar en escena, acciones del codigo
+        private void OnDrawGizmos() {
+            // Se genera el gizmos para visualizar la posicion de los pies, validar piso
+            Gizmos.color = isPlayerInRange ? Color.green : Color.red;
+            Gizmos.DrawLine(transform.position, player.position);
+        }
+    #endif
     }
 }
