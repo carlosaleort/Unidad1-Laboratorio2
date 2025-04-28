@@ -9,6 +9,9 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         [SerializeField] private Transform player;
         [SerializeField] private GameObject prefabEnemy;
         [SerializeField] private Transform[] points;
+
+        [Header("BoundingSphere")]
+        [SerializeField] private float radio = 1.0f;
         [SerializeField] private float[] distance = { 0, 20f, 40f, float.MaxValue };
 
         // Variables ocultas desde el inspector de Unity
@@ -25,7 +28,7 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
 
             // Se recorre todos la lista para inicializarlos con nuevos objetos BoundingSphere
             for(int i = 0; i < boundingSpheres.Length; i++){
-                boundingSpheres[i] = new BoundingSphere(points[i].position, 1.0f);
+                boundingSpheres[i] = new BoundingSphere(points[i].position, radio);
             }
 
             // Se gestiona de manera eficiente la activación y desactivación de objetos en función
@@ -89,5 +92,21 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
             }
             return null;
         }
+
+
+    #if UNITY_EDITOR
+
+        private void OnDrawGizmos() {
+            if (points == null || points.Length == 0) return;
+
+            Gizmos.color = Color.yellow;
+
+            foreach (Transform point in points) {
+                if (point != null) {
+                    Gizmos.DrawWireSphere(point.position, radio);
+                }
+            }
+        }
+    #endif
     }
 }

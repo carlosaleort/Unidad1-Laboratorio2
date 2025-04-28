@@ -45,9 +45,21 @@ namespace Jsgaona {
         }
 
 
+        // Metodo que permite cargar el efecto de parpadeo para dar un reset visual de escena
+        public void LoadBlinking() {
+            if(!loading) StartCoroutine(ActivateBlinking());
+        }
+
+
         // Se utiliza este metodo para poder cargar una escena de manera asincrona
         public void LoadGameScene(int idScene){
             if(!loading) StartCoroutine(LoadSceneAsync(idScene));
+        }
+
+
+        // Se utiliza este metodo para saber cual escena es la que esta activa
+        public int GetActiveScene(){
+            return SceneManager.GetActiveScene().buildIndex;
         }
         
 
@@ -87,6 +99,19 @@ namespace Jsgaona {
                 // Debug.Log($"Progreso de la carga: {asyncOperation.progress * 100}%");
                 yield return null;  // Espera al siguiente frame
             }
+            // La escena esta completamente cargada
+            yield return Fade(1, 0, fadeInDuration);
+            loading = false;
+        }
+
+
+        // Corutina que maneja la carga asincrona
+        private IEnumerator ActivateBlinking() {
+            loading = true;
+            // Transicion de salida
+            yield return Fade(0, 1, fadeOutDuration);
+            // Se espera 1 seg, para dar un efecto de transicion
+            yield return new WaitForSeconds(1.0f);
             // La escena esta completamente cargada
             yield return Fade(1, 0, fadeInDuration);
             loading = false;

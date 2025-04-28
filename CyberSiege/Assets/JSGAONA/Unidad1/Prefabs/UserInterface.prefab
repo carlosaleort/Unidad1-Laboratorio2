@@ -257,7 +257,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
-  m_FillAmount: 1
+  m_FillAmount: 0
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -365,7 +365,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -185, y: 0}
+  m_AnchoredPosition: {x: -174.7, y: 0}
   m_SizeDelta: {x: 350, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4945707353416646599
@@ -557,7 +557,7 @@ GameObject:
   - component: {fileID: 5613036196932223195}
   - component: {fileID: 5261158337194848956}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: TxtLifePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -800,10 +800,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: Assets.JSGAONA.Unidad1.Scripts.PlayerController,
+      - m_Target: {fileID: 3500979306017244627}
+        m_TargetAssemblyTypeName: Assets.JSGAONA.Unidad2.Scripts.PlayerHealthView,
           Assembly-CSharp
-        m_MethodName: Jump
+        m_MethodName: Dash
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -875,7 +875,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.88235295}
+  m_Color: {r: 1, g: 0.8184431, b: 0.41037738, a: 0.88235295}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -919,7 +919,7 @@ RectTransform:
   m_GameObject: {fileID: 3655093613496440536}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.1153126, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1056339459891763875}
@@ -950,14 +950,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8d2b1d119c298424084bfcac023e7d01, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 57c38a7a4bf9202498a9cb9a415b87d7, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1194,8 +1194,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: Assets.JSGAONA.Unidad1.Scripts.PlayerController,
+      - m_Target: {fileID: 3500979306017244627}
+        m_TargetAssemblyTypeName: Assets.JSGAONA.Unidad2.Scripts.PlayerHealthView,
           Assembly-CSharp
         m_MethodName: Jump
         m_Mode: 1
@@ -1219,7 +1219,7 @@ GameObject:
   - component: {fileID: 6448250758972202883}
   - component: {fileID: 7373506638903764078}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: TxtResourcePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1399,7 +1399,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.11764706, g: 0.5647059, b: 1, a: 1}
+  m_Color: {r: 0.73220336, g: 0.44045925, b: 0.9245283, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1648,7 +1648,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: GlitchRider
+  m_text: RXCOCOXD
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7139c6b44dc1e914f95fedeff8fa322a, type: 2}
   m_sharedMaterial: {fileID: -6140826404515262461, guid: 7139c6b44dc1e914f95fedeff8fa322a,
@@ -1658,8 +1658,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278519045
+  m_fontColor: {r: 0.01886791, g: 0.01886791, b: 0.01886791, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1844,7 +1844,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -185, y: -50}
+  m_AnchoredPosition: {x: -175.7, y: -50}
   m_SizeDelta: {x: 350, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &9158148969756499022
@@ -1907,6 +1907,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7746732575856230588}
+  - component: {fileID: 3500979306017244627}
   m_Layer: 0
   m_Name: UserInterface
   m_TagString: Untagged
@@ -1931,6 +1932,22 @@ Transform:
   - {fileID: 2667832436453025065}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3500979306017244627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7345872337733137581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d68307147374fb1428b396ab3a9fd2c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sliderLifePoint: {fileID: 4945707353416646599}
+  sliderResourcePoint: {fileID: 9158148969756499022}
+  txtLifePoint: {fileID: 5261158337194848956}
+  txtResourcePoint: {fileID: 7373506638903764078}
 --- !u!1 &8091300400207315502
 GameObject:
   m_ObjectHideFlags: 0
@@ -2104,7 +2121,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0, b: 0.022154808, a: 0.8392157}
+  m_Color: {r: 1, g: 0.9083079, b: 0, a: 0.8392157}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2165,10 +2182,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: Assets.JSGAONA.Unidad1.Scripts.PlayerController,
+      - m_Target: {fileID: 3500979306017244627}
+        m_TargetAssemblyTypeName: Assets.JSGAONA.Unidad2.Scripts.PlayerHealthView,
           Assembly-CSharp
-        m_MethodName: Jump
+        m_MethodName: NullPulse
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

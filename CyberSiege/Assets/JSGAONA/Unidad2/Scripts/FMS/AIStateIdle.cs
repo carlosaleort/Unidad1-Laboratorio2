@@ -9,6 +9,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         private AIStateIdleTemplate idleTemplate;
 
+
         // Cuando el estado se inicializa
         public override void Initialize(EnemyAI enemyMove, AIStateTemplate template) {
             EnemyAi = enemyMove;
@@ -18,7 +19,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Cuando el estado Entra
         public override void Enter() {
-            // EnemyAi.Idle();
+            EnemyAi.AdjustAgent(0, 80, 0);
         }
 
 
@@ -30,7 +31,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
             // El jugador a ingresado al rango de deteccion
             if(distance <= idleTemplate.DetectionDistance) {
                 // Se verifica si existe no un obstaculo
-                if(!EnemyAi.DetectedObstacle(distance)){
+                if(EnemyAi.ValidateView(idleTemplate, distance)) {
                     EnemyAi.ChangeState(EnemyAi.GetChaseState());
                 }
             }
@@ -39,7 +40,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Cuando el estado se Sale
         public override void Exit() {
-            
+
         }
     }
 }

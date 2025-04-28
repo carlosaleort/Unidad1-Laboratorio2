@@ -8,8 +8,7 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
     [RequireComponent(typeof(NavMeshAgent))]
 
     // Este script se emplea para gestionar la logica de los enemigos
-    public class Enemy : MonoBehaviour, IAnulable
-    {
+    public class Enemy : MonoBehaviour {
         
         // Variables visibles desde el inspector de Unity
         [SerializeField] private float speedRotation = 120;
@@ -41,13 +40,7 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
             if(player != null) StartCoroutine(UpdateEnemyBehavior());
         }
-
-        public void Anular()
-        {
-            // Lógica para desactivar o inutilizar al enemigo
-            gameObject.SetActive(false); // Ejemplo simple
-        }
-
+        
         // Metodo de llamada de Unity, se llama en el momento de que el GameObject es destruido
         private void OnDestroy() {
             if(player != null) StopCoroutine(UpdateEnemyBehavior());
@@ -116,9 +109,11 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
     #if UNITY_EDITOR
         // Metodo de llamada de Unity, se emplea para visualizar en escena, acciones del codigo
         private void OnDrawGizmos() {
-            // Se genera el gizmos para visualizar la posicion de los pies, validar piso
-            Gizmos.color = isPlayerInRange ? Color.green : Color.red;
-            Gizmos.DrawLine(transform.position, player.position);
+            if(player != null) {
+                // Se genera el gizmos para visualizar la posicion de los pies, validar piso
+                Gizmos.color = isPlayerInRange ? Color.green : Color.red;
+                Gizmos.DrawLine(transform.position, player.position);
+            }
         }
     #endif
     }

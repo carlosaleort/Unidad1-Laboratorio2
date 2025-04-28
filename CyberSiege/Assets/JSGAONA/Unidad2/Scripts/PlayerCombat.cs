@@ -1,31 +1,39 @@
-using System.Collections;
-using System.Collections.Generic;
-using Assets.JSGAONA.Unidad1.Scripts;
 using UnityEngine;
-using UnityEngine.UI;
+using Assets.JSGAONA.Unidad1.Scripts;
+using System;
 
 namespace Assets.JSGAONA.Unidad2.Scripts {
     
+    // Arquitectura M-V-C  <!-- MODELO -->
+    // Se emplea este script para gestionar el sistema de combate del personaje
     public class PlayerCombat : MonoBehaviour {
         
         [SerializeField] private int maxLifePoint = 250;
         [SerializeField] private int maxResourcePoint = 100;
 
-        [SerializeField] private Slider sliderLifePoint;
-        [SerializeField] private Slider sliderResourcePoint;
+        [SerializeField] private GameObject nullPulse;
+        [SerializeField] private int cost;
+
+        [SerializeField] private ParticleSystem blood;
+
+
+
+        // Delegado para cuando la vida cambia
+        public delegate void OnHealthChanged(int amount, int maxLifePoint);
+        public event OnHealthChanged HealthChanged;
+
+        // Delegado para cuando el recurso cambia
+        public delegate void OnResourceChanged(int amount, int maxResourcePoint);
+        public event OnResourceChanged ResourceChanged;
+
 
         private bool isAlive = true;
         private int currentLifePoint;
         private int currentResourcePoint;
         private PlayerController playerController;
 
-        [SerializeField] private float anulacionRange = 10f;
-        [SerializeField] private float cooldownDuration = 5f;
-        [SerializeField] private int resourceCost = 30;
-        [SerializeField] private ParticleSystem anulacionEffect;
-
-        private float cooldownTimer;
-        private RaycastHit[] hitResults = new RaycastHit[20]; // Reutilizable
+        public int MaxLifePoint => maxLifePoint;
+        public int MaxResourcePoint => maxResourcePoint;
 
 
         private void Awake() {
@@ -36,112 +44,59 @@ namespace Assets.JSGAONA.Unidad2.Scripts {
         private void Start() {
             currentLifePoint = maxLifePoint;
             currentResourcePoint = maxResourcePoint;
-
-            // Mi barra de salud y recurso es min 0 y max es el de la variable
-            sliderLifePoint.minValue = 0;
-            sliderResourcePoint.minValue = 0;
-
-            sliderLifePoint.maxValue = maxLifePoint;
-            sliderResourcePoint.maxValue = maxResourcePoint;
-
-            sliderLifePoint.value = maxLifePoint;
-            sliderResourcePoint.value = maxResourcePoint;
         }
 
 
-        public void TakeDamage(int amount) {
+        public void NullPulse(){
+            // Se valida que exista referencia de la habilidad y el pj tenga mana
+            if(nullPulse != null && currentResourcePoint >= cost) {
+                nullPulse.SetActive(true);
+                currentResourcePoint -= cost;
+                ResourceChanged?.Invoke(currentResourcePoint, maxResourcePoint);
+            }
+        }
+
+
+        // Metodo que permite curar al personaje
+        public void Heal(int amount) {
+            // Si esta muerto no hacer nada
             if(!isAlive) return;
+            currentLifePoint += amount;
+            // La vida ha superado el maximo permitido
+            if(currentLifePoint > maxLifePoint) {
+                currentLifePoint = maxLifePoint;
+            }
+            HealthChanged?.Invoke(currentLifePoint, maxLifePoint);
+        }
 
+
+        // Metodo que permite recibir algo de danio
+        public void TakeDamage(int amount) {
+            // Si esta muerto no hacer nada
+            if(!isAlive) return;
             currentLifePoint -= amount;
-            sliderLifePoint.value = Mathf.Clamp(currentLifePoint, 0, maxLifePoint);
-
             // Me he quedado sin vida
             if(currentLifePoint <= 0){
                 currentLifePoint = 0;
                 isAlive = false;
-                playerController.StopMovement();
-                // Accion de morir o reinicio del pj
+                playerController.ManagerMovement(false);
             }else{
                 // Animacion de recibir daño
             }
-        }
-        public void Heal(int amount)
-        {
-            if (!isAlive) return;
-            currentLifePoint = Mathf.Min(currentLifePoint + amount, maxLifePoint);
-            sliderLifePoint.value = currentLifePoint;
-        }
-
-        public void RestoreResource(int amount)
-        {
-            currentResourcePoint = Mathf.Min(currentResourcePoint + amount, maxResourcePoint);
-            sliderResourcePoint.value = currentResourcePoint;
-        }
-
-        public void TakeResource(int amount){
-            currentResourcePoint -= amount;
-            // Me he quedado sin recurso
-            if(currentResourcePoint <= 0){
-                // Accion de morir o reinicio del pj
-            }
-        }
-
-        public void PulsoDeAnulacion()
-        {
-            if (cooldownTimer > 0f || currentResourcePoint < resourceCost) return;
-
-            // Gasta recurso
-            TakeResource(resourceCost);
-
-            // Inicia cooldown
-            cooldownTimer = cooldownDuration;
-
-            // Efecto visual
-            if (anulacionEffect != null)
-            {
-                anulacionEffect.Play();
-            }
-
-            Vector3 origin = transform.position;
-            Vector3 direction = Vector3.forward; // No importa en SphereCastAll, solo por sintaxis
-            float radius = anulacionRange;
-
-            int hitCount = Physics.SphereCastNonAlloc(origin, radius, direction, hitResults, 0f);
-
-            for (int i = 0; i < hitCount; i++)
-            {
-                GameObject obj = hitResults[i].collider.gameObject;
-
-                // Verifica línea de visión
-                Vector3 targetDir = obj.transform.position - origin;
-                if (Physics.Raycast(origin, targetDir.normalized, out RaycastHit rayHit, anulacionRange))
-                {
-                    if (rayHit.collider.gameObject != obj) continue; // Algo bloquea la visión
-                }
-
-                // Aplica la anulación si implementa la interfaz
-                IAnulable anulable = obj.GetComponent<IAnulable>();
-                if (anulable != null)
-                {
-                    anulable.Anular();
-                }
-            }
-        }
-
-        private void Update()
-        {
-            if (cooldownTimer > 0f)
-            {
-                cooldownTimer -= Time.deltaTime;
-            }
-
-            // Ejemplo para activarlo con una tecla (temporal para pruebas)
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                PulsoDeAnulacion();
-            }
+            if(blood != null) blood.Play();
+            HealthChanged?.Invoke(currentLifePoint, maxLifePoint);
         }
 
 
+        // // Metodo que permite tomar recurso        
+        // public void TakeResource(int amount) {
+        //     // Si esta muerto no hacer nada
+        //     if(!isAlive) return;
+        //     // Me he quedado sin recurso
+        //     if(currentResourcePoint > 0) {
+        //         currentResourcePoint -= amount;
+        //         ResourceChanged?.Invoke(currentResourcePoint, maxResourcePoint);
+        //     }
+        // }
     }
 }

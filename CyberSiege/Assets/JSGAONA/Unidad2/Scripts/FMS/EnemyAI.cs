@@ -1,20 +1,25 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
+using Assets.JSGAONA.Unidad2.Scripts.Skill;
 using Assets.JSGAONA.Unidad2.Scripts.FMS.Temple;
-using System.Threading;
 
 namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
     [RequireComponent(typeof(NavMeshAgent))]
     // Se emplea este script para generar la IA del enemigo con NavMeshAgent
-    public class EnemyAI : MonoBehaviour, IAnulable {
+    public class EnemyAI : MonoBehaviour, IHackeable {
 
         // Variables visibles desde el inspector de Unity
         [Header("Adjust movement")]
         [SerializeField] private float speedMovement = 2.5f;
         [SerializeField] private float speedRotation = 120;
         [SerializeField] private LayerMask includeLayer;
+
+        [Header("Adjust wayPoint")]
+        // [SerializeField] private bool useRandomPatrol = false;
+        [SerializeField] private Transform[] wayPoints;
 
         
         [Header("Adjust States Temple")]
@@ -24,12 +29,17 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         public Transform player;
 
         // Variables ocultas desde el inspector de Unity
-        private bool inRange = false;
+        private int currentIndex = 0;
+        public bool inRange = false;
         private float nextCheck = 0.25f;
+        private float timeStopMotion = 0.0f;
         private NavMeshAgent agent;
         private Vector3 initialPoint;
         private Quaternion initialRotation;
         private readonly Dictionary<string, ActiveState> ActiveStates = new ();
+
+        // Propiedades
+        public bool ItsHacked { get; set; }
 
 
 
@@ -38,18 +48,15 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         private void Awake(){
             agent = GetComponent<NavMeshAgent>();
         }
-        public void Anular()
-        {
-            // Lógica para desactivar o inutilizar al enemigo
-            gameObject.SetActive(false); // Ejemplo simple
-        }
+
 
         // Metodo de llamada de Unity, se llama una unica vez al iniciar el app, se ejecuta despues
         // de Awake, se realiza la asignacion de variables y configuracion del script
         private void Start() {
-            agent.speed = speedMovement;
             initialPoint = transform.position;
             initialRotation = transform.rotation;
+
+            agent.speed = speedMovement;
 
             // El pj dispone de un estado de reposo
             if (behaviorTemplate.DefaultState != null) {
@@ -65,7 +72,11 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
             }
             // El pj dispone de un estado de ataque basico
             if (behaviorTemplate.BasicAttackState != null) {
-                AddState(behaviorTemplate.BasicAttackState, null);
+                AddState(behaviorTemplate.BasicAttackState, behaviorTemplate.BasicAttackTemplate);
+            }
+            // El pj dispone de un estado de hack
+            if (behaviorTemplate.HackState != null) {
+                AddState(behaviorTemplate.HackState, null);
             }
 
             // Se recorre todos los estados y se los inicializa
@@ -75,6 +86,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
             // Se establece el estado por defecto
             currentState = GetDefaultState();
             currentState.Enter();
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
         }
 
 
@@ -85,7 +97,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
             if(currentState != null) currentState.Execute();
 
             // El enemigo esta a rango del jugador
-            if(inRange) {
+            if(inRange && !ItsHacked) {
                 // Mira al jugador suavemente
                 Vector3 direction = (player.position - transform.position).normalized;
                 direction.y = 0;
@@ -96,6 +108,22 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
                     transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, newSpeedRot);
                 }
             }
+        }
+
+
+        // Metodo de llamada de Unity, se activa cuando el renderizador del objeto entra en el campo
+        // de vision de la camara activa
+        private void OnBecameVisible() {
+            enabled = true;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+        }
+
+
+        // Metodo de llamada de Unity, se activa cuando el renderizador del objeto sale del campo de
+        // vision de la camara.
+        private void OnBecameInvisible() {
+            enabled = false;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
         }
 
 
@@ -134,20 +162,28 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
 
         // Metodo que permite ajustar la velocidad de movimiento del personaje
-        public void AdjustAgent(float speed, bool increase) {
-            if(increase){
-                agent.speed *= speed;
-                agent.stoppingDistance = behaviorTemplate.MinDistanceFromTarget;
-            }else{
-                agent.speed /= speed;
-                agent.stoppingDistance = 0;
+        public void AdjustAgent(int idAdjut, float modifiedSpeed, float acceleration) {
+            // Seleccionar el caso del ajuste
+            switch (idAdjut) {
+                // Ajustar el agente sin velocidad IDLE
+                case 0:
+                    agent.speed = 0;
+                    agent.stoppingDistance = 0;
+                    break;
+                
+                // Ajustar el agente con velocidad normal PATROL
+                case 1:
+                    agent.speed = speedMovement * modifiedSpeed;
+                    agent.stoppingDistance = 0;
+                    break;
+
+
+                // Ajustar el agente con velocidad de persecucion CHASE
+                case 2:
+                    agent.speed = speedMovement * modifiedSpeed;
+                    agent.stoppingDistance = behaviorTemplate.MinDistanceFromTarget;
+                    break;
             }
-        }
-
-
-        // Metodo que permite activar el estado de reset al momento de entrar
-        public void ResetPositionEnemyAi() {
-            agent.SetDestination(initialPoint);
         }
 
 
@@ -181,6 +217,14 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         }
 
 
+        // Se obtiene el estado de hackeo: HACK
+        public AIState GetHackState(){
+            // Se verifica si existe un estado de persecucion
+            if (behaviorTemplate.HackState == null) return null;
+            return ActiveStates[behaviorTemplate.HackState.name].State;
+        }
+
+
         // Se emplea este metodo para dteerminar la distancia entre en enemigo y el jugador
         public float GetDistance() {
             return Vector3.Distance(transform.position, player.position);
@@ -190,19 +234,43 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         // Se emplea este metodo para detectar si exite algun obstaculo
         public bool DetectedObstacle(float distance) {
             Vector3 directionToPlayer = (player.position - transform.position).normalized;
-            return Physics.Raycast(transform.position, directionToPlayer, distance, includeLayer);
+            return Physics.Raycast(transform.position, directionToPlayer, distance, includeLayer, QueryTriggerInteraction.Ignore);
+        }
+
+
+        // Permite verificar si el ataque se encuentra al alcance del objetivo
+        public bool ValidateView(AIStateIdleTemplate template, float distance) {
+            // Se calcula el angulo de vision
+            Vector3 directionToTarget = player.position - transform.position;
+            
+            // Se valida primeramente si el personaje se encuentra dentro del area de auto aggro
+            if(distance < template.AutoAggroDistance) {
+                // Realizar un Raycast para verificar que no exista obstaculos
+                return !Physics.Raycast(transform.position, directionToTarget,
+                    distance, includeLayer, QueryTriggerInteraction.Ignore);
+            }
+
+            float angleToTarget = Vector3.Angle(directionToTarget, transform.forward);
+            // Si el angulo hacia el objetivo esta dentro del area de vision y el alcance
+            if (angleToTarget <= template.ViewAngle && distance >= 0 && distance <= template.DetectionDistance) {
+                // Realizar un Raycast para verificar que no exista obstaculos
+                return !Physics.Raycast(transform.position, directionToTarget,
+                    distance, includeLayer, QueryTriggerInteraction.Ignore);
+            }
+            // Si el angulo o la distancia estan fuera del rango, el objetivo no es visible
+            return false;
         }
 
 
         // Se emplea este metodo para poder obtener si el estado de Reset se a completado
-        public bool GetResetEnemyAi() {
+        public bool GetResetEnemyAi(bool resetRotation) {
             // Espera a que se haya calculado el camino
             if (!agent.pathPending) {
                 // Esta dentro del rango de parada
                 if (agent.remainingDistance <= agent.stoppingDistance) {
                     // No hay mas camino o el agente se detuvo por completo
                     if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f) {
-                        transform.rotation = initialRotation;
+                        if(resetRotation) transform.rotation = initialRotation;
                         return true;
                     }
                 }
@@ -213,23 +281,86 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Se emplea este metodo para gestionar el estado de persecucion
         public bool Chase(float distance) {
+            // Se verifica si hay un obstaculo para seguirlo
+            if(DetectedObstacle(distance)){
+                if(inRange) inRange = false;
+                agent.stoppingDistance = 0;
+                // Si el objetivo se aleja, siguelo
+                agent.SetDestination(player.position);
+                return true;
+            }
+
             // Se valida si el enemigo esta lo suficientemente cerca del jugador
             if(distance <= behaviorTemplate.MinDistanceFromTarget){
-                // Cambiar al estado de reposo
+                // Una vez alcanzado al objetivo, detiene
                 if(!inRange) {
                     agent.ResetPath();
                     inRange = true;
                 }
-                return false;
-            }
 
             // Se valida si el personaje se alejado del jugador para proceder a seguirlo
-            if(distance > behaviorTemplate.MaxDistanceFromTarget) {
+            } else  if(distance > behaviorTemplate.MaxDistanceFromTarget) {
                 if(inRange) inRange = false;
-                agent.SetDestination(player.position); // Regresar al estado de persecuion
+                // Si el objetivo se aleja, siguelo
+                agent.SetDestination(player.position);
                 return true;
             }
             return false;
         }
+
+
+        // Metodo que permite establecer el siguiente punto de control de la patrulla
+        public void SetDestinationPatrol () {
+            currentIndex++;
+            
+            // Se valida si el indice ha superado al tamano del arreglo
+            if(currentIndex >= wayPoints.Length){
+                currentIndex = 0;
+            }
+            agent.SetDestination(wayPoints[currentIndex].position);
+        }
+
+
+        // Metodo que permite activar el estado de reset al momento de entrar
+        public void ResetPositionEnemyAi() {
+            agent.SetDestination(initialPoint);
+        }
+
+
+        // Metodo que permite hackear
+        public void Hack(float timeHack) {
+            ItsHacked = true;
+            timeStopMotion = timeHack;
+            ChangeState(GetHackState());
+        }
+
+
+        // Metodo que permite contar el tiempo de hackeo
+        public bool HackingTime () {
+            timeStopMotion -= Time.deltaTime;
+            // Se valida si el contador a llegado a cero o menos
+            return timeStopMotion < 0;
+        }
+
+
+
+    #if UNITY_EDITOR
+        // Metodo de llamada de Unity, permite dibujar sobre la ventana de escena una esfera
+        // que brinda la visualizacion del rango de area sobre el cual patrulla en enemigo aleatoriamente
+        private void OnDrawGizmos(){
+            if(behaviorTemplate.DefaultStateTemplate == null) return;
+            Handles.color = new Color(1f, 1f, 0f, 0.1f); // Amarillo semi-transparente
+            Handles.DrawSolidArc(
+                transform.position,
+                transform.up,
+                Quaternion.Euler(0f, -behaviorTemplate.DefaultStateTemplate.ViewAngle, 0f) * transform.forward,
+                behaviorTemplate.DefaultStateTemplate.ViewAngle * 2.0f,
+                behaviorTemplate.DefaultStateTemplate.DetectionDistance
+            );
+
+            Handles.color = new Color(1f, 0f, 0f, 0.1f); // Rojo semi-transparente
+            Handles.DrawSolidDisc(transform.position, transform.up, behaviorTemplate.DefaultStateTemplate.AutoAggroDistance);
+        }
+    #endif
     }
 }

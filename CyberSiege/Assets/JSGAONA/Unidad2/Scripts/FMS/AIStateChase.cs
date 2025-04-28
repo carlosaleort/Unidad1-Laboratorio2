@@ -19,7 +19,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Cuando el estado Entra
         public override void Enter() {
-            EnemyAi.AdjustAgent(chaseTemple.MovementSpeedModifier, true);
+            EnemyAi.AdjustAgent(2, chaseTemple.MovementSpeedModifier, chaseTemple.Acceleration);
         }
 
 
@@ -43,7 +43,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Cuando el estado se Sale
         public override void Exit() {
-            EnemyAi.AdjustAgent(chaseTemple.MovementSpeedModifier, false);
+            
         }
     }
 }

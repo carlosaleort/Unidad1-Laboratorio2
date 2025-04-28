@@ -7,6 +7,7 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
     // Se emplea para obligar al GameObject asignar el componente para su correcto funcionamiento
     [RequireComponent(typeof(CharacterController))]
 
+    // Arquitectura M-V-C  <!-- MODELO -->
     // Se emplea este script para gestionar el controlador del personaje jugable
     public class PlayerController : MonoBehaviour {
         
@@ -18,7 +19,6 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         [SerializeField] private int maxJumpCount = 1;
         [SerializeField]  private float minFallVelocity = -2;
         [SerializeField] [Range(0, 5)] private float gravityMultiplier = 1;
-        [SerializeField] private Joystick joystick;
 
         [Header("Adjust to gorund")]
         [SerializeField] private float radiusDetectedGround = 0.2f;
@@ -44,6 +44,8 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         private Vector3 dirMove;
         private Vector3 positionFoot;
         private CharacterController charController;
+        private Joystick joystick;
+        public Joystick JoystickController { set { joystick = value;} }
 
 
 
@@ -52,47 +54,36 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         private void Awake(){
             charController = GetComponent<CharacterController>();
         }
-
-
+        
+        
         // Metodo de llamada de Unity, se llama en cada frame del computador
         // Se realiza la logica de control del personaje jugable
-        private void Update()
-        {
-            if (enableControl && !isDashing)
-            {
-                // Movimiento horizontal por control
-                dirMove = new Vector3(joystick.Horizontal, 0, joystick.Vertical).normalized;
+        private void Update() {
+            if(enableControl) {
+                // No se esta realiznado un dash
+                if(!isDashing) {
+                    dirMove = new Vector3(joystick.Horizontal, 0, joystick.Vertical).normalized;
 
-                // Rotación del personaje
-                if (dirMove != Vector3.zero)
-                {
-                    Quaternion targetRotation = Quaternion.LookRotation(dirMove);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speedRotation);
+                    // Esta conectado a tierra
+                    if(onGround){
+                        fallVelocity = Mathf.Max(minFallVelocity, fallVelocity + gravity * Time.deltaTime);
+                    
+                    // No esta conectado a tierra, por ende se esta en el aire
+                    }else {
+                        fallVelocity += gravity  * gravityMultiplier * Time.deltaTime;
+                    }
+
+                    // Rotacion del personaje
+                    if (dirMove != Vector3.zero) {
+                        Quaternion targetRotation = Quaternion.LookRotation(dirMove);
+                        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speedRotation);
+                    }
+                    dirMove *= speedMove;
+                    dirMove.y = fallVelocity;
                 }
-
-                dirMove *= speedMove;
             }
-
-            // Siempre aplicar gravedad, incluso si no hay control
-            if (onGround)
-            {
-                fallVelocity = Mathf.Max(minFallVelocity, fallVelocity + gravity * Time.deltaTime);
-            }
-            else
-            {
-                fallVelocity += gravity * gravityMultiplier * Time.deltaTime;
-            }
-
-            // Solo si no está dashing, aplicamos la caída en Y
-            if (!isDashing)
-            {
-                dirMove.y = fallVelocity;
-            }
-
-            // Movimiento global
             charController.Move(dirMove * Time.deltaTime);
         }
-
 
 
         // Metodo de llamada de Unity, se llama en cada actualizacion constante 0.02 seg
@@ -185,9 +176,18 @@ namespace Assets.JSGAONA.Unidad1.Scripts {
         }
 
 
-        public void StopMovement(){
-            enableControl = false;
+        // Se emplea este metodo para detener el movimiento del personaje
+        public void ManagerMovement(bool value){
+            enableControl = value;
             dirMove = Vector3.zero;
+        }
+
+
+        // metodo que permite volver al personaje al ultimo punto de control
+        public void ReturnCheckPoint(Vector3 newCheckPoint) {
+            charController.enabled = false;
+            transform.position = newCheckPoint;
+            charController.enabled = true;
         }
 
 

@@ -23,7 +23,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         public override void Execute() {
             // Se valida el intervalo de chequeo
             if(!EnemyAi.CheckInterval()) return;
-            if(EnemyAi.GetResetEnemyAi()) {
+            if(EnemyAi.GetResetEnemyAi(true)) {
                 EnemyAi.ChangeState(EnemyAi.GetDefaultState());
             }
         }
