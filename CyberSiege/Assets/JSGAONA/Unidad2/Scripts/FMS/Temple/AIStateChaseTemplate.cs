@@ -10,8 +10,5 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS.Temple {
 
         // Velocidad de movimiento modificada
         [Range(0.1f, 5.0f)] public float MovementSpeedModifier = 1.0f;
-
-        // Aceleracion del personaje
-        public float Acceleration = 40.0f;
     }
 }

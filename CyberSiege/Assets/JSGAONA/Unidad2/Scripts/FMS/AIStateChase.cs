@@ -19,7 +19,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Cuando el estado Entra
         public override void Enter() {
-            EnemyAi.AdjustAgent(2, chaseTemple.MovementSpeedModifier, chaseTemple.Acceleration);
+            EnemyAi.AdjustAgent(2, chaseTemple.MovementSpeedModifier);
         }
 
 
@@ -27,7 +27,9 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         public override void Execute() {
             // Se valida el intervalo de chequeo
             if(!EnemyAi.CheckInterval()) return;
+
             float distance = EnemyAi.GetDistance();
+
             // La distancia es mayor al rango de persecucion
             if(distance > chaseTemple.LeaveDistance){
                 // Estado de reinicio
@@ -35,8 +37,14 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
                 return;
             }
             // Ha llegado a la distancia minima, se cambia de estado
-            if(!EnemyAi.Chase(distance)) {
+            if(!EnemyAi.Chase(distance) && EnemyAi.GetBasicAttackState() != null) {
                 EnemyAi.ChangeState(EnemyAi.GetBasicAttackState());
+            }
+
+            // Se valida si el enemigo no puede perseguir
+            if(!EnemyAi.CanChase()) {
+                EnemyAi.ChangeState(EnemyAi.GetResetState());
+                return;
             }
         }
 

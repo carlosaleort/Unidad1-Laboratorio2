@@ -10,6 +10,6 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS.Temple {
         [Range(0.1f, 5.0f)] public float SpeedAttack = 1.5f;
 
         // Nombres de animaciones que realiza durante el ataque
-        [SerializeField] public string[] NameAnim = {"Attack01", "Attack02"};
+        public string[] NameAnim = {"Attack01", "Attack02"};
     }
 }

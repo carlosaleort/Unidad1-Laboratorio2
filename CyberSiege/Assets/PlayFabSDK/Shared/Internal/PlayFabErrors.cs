@@ -116,6 +116,7 @@ namespace PlayFab
         UnableToConnectToDatabase = 1101,
         InternalServerError = 1110,
         InvalidReportDate = 1111,
+        ReportNotAvailable = 1112,
         DatabaseThroughputExceeded = 1113,
         InvalidGameTicket = 1115,
         ExpiredGameTicket = 1116,
@@ -600,11 +601,6 @@ namespace PlayFab
         VersionIncrementRateExceeded = 1599,
         InvalidSteamUsername = 1600,
         InvalidVersionResetForLinkedLeaderboard = 1601,
-        BattleNetNotEnabledForTitle = 1602,
-        ReportNotProcessed = 1603,
-        DataNotAvailable = 1604,
-        InvalidReportName = 1605,
-        ResourceNotModified = 1606,
         MatchmakingEntityInvalid = 2001,
         MatchmakingPlayerAttributesInvalid = 2002,
         MatchmakingQueueNotFound = 2016,
@@ -884,7 +880,6 @@ namespace PlayFab
         TrueSkillScenarioContainsActiveModel = 20067,
         TrueSkillInvalidConditionRank = 20068,
         TrueSkillTotalScenarioLimitExceeded = 20069,
-        TrueSkillInvalidConditionsList = 20070,
         GameSaveManifestNotFound = 20300,
         GameSaveManifestVersionAlreadyExists = 20301,
         GameSaveConflictUpdatingManifest = 20302,
@@ -906,9 +901,6 @@ namespace PlayFab
         GameSaveTitleDoesNotExist = 20318,
         GameSaveOperationNotAllowedForTitle = 20319,
         GameSaveManifestFilesLimitExceeded = 20320,
-        GameSaveManifestDescriptionUpdateNotAllowed = 20321,
-        GameSaveTitleConfigNotFound = 20322,
-        GameSaveTitleAlreadyOnboarded = 20323,
         StateShareForbidden = 21000,
         StateShareTitleNotInFlight = 21001,
         StateShareStateNotFound = 21002,
@@ -916,9 +908,7 @@ namespace PlayFab
         StateShareStateRedemptionLimitExceeded = 21004,
         StateShareStateRedemptionLimitNotUpdated = 21005,
         StateShareCreatedStatesLimitExceeded = 21006,
-        StateShareIdMissingOrMalformed = 21007,
-        PlayerCreationDisabled = 22000,
-        AccountAlreadyExists = 22001
+        StateShareIdMissingOrMalformed = 21007
     }
 
     public class PlayFabError

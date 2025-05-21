@@ -22,7 +22,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Cuando el estado Entra
         public override void Enter() {
-            EnemyAi.AdjustAgent(0, 80, 0);
+            EnemyAi.AdjustAgent(0);
         }
 
 
@@ -33,10 +33,14 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
             float distance = EnemyAi.GetDistance();
             
             // Se valida si se encuentra a rango de alcance o no exista una pared
-            if(EnemyAi.Chase(distance)){
+            if(EnemyAi.Chase(distance) && !combatEnemy.IsAttacking){
                 EnemyAi.ChangeState(EnemyAi.GetChaseState());
-            }else{                
-                Attack ();
+            }else{
+                // Se verifica si se puede realizar un ataque
+                if(combatEnemy.CheckIntervalBasicAttack(basicAttackTemple.SpeedAttack)
+                    && !combatEnemy.IsAttacking){
+                    Attack();
+                }
             }
         }
 
@@ -47,11 +51,11 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         }
 
 
+        // Se emplea este metodo para poder gestionar el ataque
         protected virtual void Attack () {
-            // Se verifica si se puede realizar un ataque
-            if(combatEnemy.CheckIntervalBasicAttack(basicAttackTemple.SpeedAttack)){
-                combatEnemy.BasicAttack();
-            }
+            // Se genera una animacion aleatoria de ataque
+            int random = Random.Range(0, basicAttackTemple.NameAnim.Length);
+            combatEnemy.BasicAttack(basicAttackTemple.NameAnim[random]);
         }
     }
 }

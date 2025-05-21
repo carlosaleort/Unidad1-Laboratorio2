@@ -6,7 +6,5 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS.Temple {
     public class AIStatePatrolTemplate : AIStateIdleTemplate {
         
         [SerializeField] [Range(0.1f, 5.0f)] public float ModifiedSpeed = 1.0f;
-        [SerializeField] public float Acceleration = 80.0f;
-
     }
 }

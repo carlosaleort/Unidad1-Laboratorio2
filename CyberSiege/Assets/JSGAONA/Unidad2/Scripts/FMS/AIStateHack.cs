@@ -16,6 +16,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         // Cuando el estado Entra
         public override void Enter() {
             // Se activa el efecto de particulas
+            EnemyAi.ManagerHack(true);
         }
 
 
@@ -32,6 +33,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         public override void Exit() {
             // Se desactiva el efecto de particulas
             EnemyAi.ItsHacked = false;
+            EnemyAi.ManagerHack(false);
         }
     }
 }

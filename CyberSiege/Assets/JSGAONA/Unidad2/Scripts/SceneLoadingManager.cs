@@ -24,6 +24,8 @@ namespace Jsgaona {
         // Se emplea el patron Singleton, para permitir una unica instancia del administrador
         public static SceneLoadingManager SceneInstance { private set; get; }
 
+        // Propiedad
+        public int DoorId;
 
 
         // Metodo de llamada de Unity, se llama una unica vez al iniciar el aplicativo

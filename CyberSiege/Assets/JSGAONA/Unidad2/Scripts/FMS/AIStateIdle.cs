@@ -19,7 +19,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
         // Cuando el estado Entra
         public override void Enter() {
-            EnemyAi.AdjustAgent(0, 80, 0);
+            EnemyAi.AdjustAgent(0);
         }
 
 
@@ -32,7 +32,14 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
             if(distance <= idleTemplate.DetectionDistance) {
                 // Se verifica si existe no un obstaculo
                 if(EnemyAi.ValidateView(idleTemplate, distance)) {
-                    EnemyAi.ChangeState(EnemyAi.GetChaseState());
+                    // Se valida que tenga el estado de persecucion
+                    if(EnemyAi.GetChaseState() != null){
+                        EnemyAi.ChangeState(EnemyAi.GetChaseState());
+                    
+                    // Se pasa al estado de ataque basico
+                    }else{
+                        EnemyAi.ChangeState(EnemyAi.GetBasicAttackState());
+                    }
                 }
             }
         }

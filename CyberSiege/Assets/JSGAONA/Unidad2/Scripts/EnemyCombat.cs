@@ -1,29 +1,33 @@
 using UnityEngine;
-using System.Collections;
 
 namespace Assets.JSGAONA.Unidad2.Scripts {
 
+    // Se emplea este script para gestionar el sistema de combate del enemigo
     public class EnemyCombat : MonoBehaviour {
 
         // Variables visibles desde el inspector de Unity
-        [SerializeField] private GameObject attack;
-
         [SerializeField] private Weapon weapon;
+        [SerializeField] private string nameParameter = "isAttacking";
 
         // Variables ocultas desde el inspector de Unity
-        private float nextCheck = 3f;
+        private float nextCheck = 1f;
+        private Animator animController;
+
+        // Propiedades
+        public bool IsAttacking => animController.GetBool(nameParameter);
         
 
-
-        public void BasicAttack(){
-            StartCoroutine(EnableAttack());
+        // Metodo de llamada de Unity, se llama una unica vez al iniciar el app, es el primer
+        // metodo en ejecutarse, se realiza la asignacion de componentes
+        private void Awake(){
+            animController = GetComponent<Animator>();
         }
 
 
-        private IEnumerator EnableAttack(){
-            attack.SetActive(true);
-            yield return new WaitForSeconds(0.1f);
-            attack.SetActive(false);
+        // Se emplea este script para gestionar el ataque basico del personaje
+        public void BasicAttack(string nameAnim){
+            // Se ejecuta la animacion de ataque
+            if(!string.IsNullOrEmpty(nameAnim)) animController.CrossFade(nameAnim, 0.1f);
         }
 
         
@@ -36,6 +40,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts {
         }
 
 
+        // Se emplea este metodo para gestionar el sistema de combate del enemigo a rango
         public void UseWeapon(){
             if(weapon != null) weapon.Fire();
         }

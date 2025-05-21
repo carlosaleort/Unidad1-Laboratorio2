@@ -99,8 +99,6 @@ namespace PlayFab.Events
         public event PlayFabResultEvent<GetPlayerTagsResult> OnGetPlayerTagsResultEvent;
         public event PlayFabRequestEvent<GetPlayerTradesRequest> OnGetPlayerTradesRequestEvent;
         public event PlayFabResultEvent<GetPlayerTradesResponse> OnGetPlayerTradesResultEvent;
-        public event PlayFabRequestEvent<GetPlayFabIDsFromBattleNetAccountIdsRequest> OnGetPlayFabIDsFromBattleNetAccountIdsRequestEvent;
-        public event PlayFabResultEvent<GetPlayFabIDsFromBattleNetAccountIdsResult> OnGetPlayFabIDsFromBattleNetAccountIdsResultEvent;
         public event PlayFabRequestEvent<GetPlayFabIDsFromFacebookIDsRequest> OnGetPlayFabIDsFromFacebookIDsRequestEvent;
         public event PlayFabResultEvent<GetPlayFabIDsFromFacebookIDsResult> OnGetPlayFabIDsFromFacebookIDsResultEvent;
         public event PlayFabRequestEvent<GetPlayFabIDsFromFacebookInstantGamesIdsRequest> OnGetPlayFabIDsFromFacebookInstantGamesIdsRequestEvent;
@@ -165,8 +163,6 @@ namespace PlayFab.Events
         public event PlayFabResultEvent<LinkAndroidDeviceIDResult> OnLinkAndroidDeviceIDResultEvent;
         public event PlayFabRequestEvent<LinkAppleRequest> OnLinkAppleRequestEvent;
         public event PlayFabResultEvent<EmptyResult> OnLinkAppleResultEvent;
-        public event PlayFabRequestEvent<LinkBattleNetRequest> OnLinkBattleNetRequestEvent;
-        public event PlayFabResultEvent<EmptyResponse> OnLinkBattleNetResultEvent;
         public event PlayFabRequestEvent<LinkCustomIDRequest> OnLinkCustomIDRequestEvent;
         public event PlayFabResultEvent<LinkCustomIDResult> OnLinkCustomIDResultEvent;
         public event PlayFabRequestEvent<LinkFacebookAccountRequest> OnLinkFacebookAccountRequestEvent;
@@ -201,7 +197,6 @@ namespace PlayFab.Events
         public event PlayFabResultEvent<ListPlayerCustomPropertiesResult> OnListPlayerCustomPropertiesResultEvent;
         public event PlayFabRequestEvent<LoginWithAndroidDeviceIDRequest> OnLoginWithAndroidDeviceIDRequestEvent;
         public event PlayFabRequestEvent<LoginWithAppleRequest> OnLoginWithAppleRequestEvent;
-        public event PlayFabRequestEvent<LoginWithBattleNetRequest> OnLoginWithBattleNetRequestEvent;
         public event PlayFabRequestEvent<LoginWithCustomIDRequest> OnLoginWithCustomIDRequestEvent;
         public event PlayFabRequestEvent<LoginWithEmailAddressRequest> OnLoginWithEmailAddressRequestEvent;
         public event PlayFabRequestEvent<LoginWithFacebookRequest> OnLoginWithFacebookRequestEvent;
@@ -265,8 +260,6 @@ namespace PlayFab.Events
         public event PlayFabResultEvent<UnlinkAndroidDeviceIDResult> OnUnlinkAndroidDeviceIDResultEvent;
         public event PlayFabRequestEvent<UnlinkAppleRequest> OnUnlinkAppleRequestEvent;
         public event PlayFabResultEvent<EmptyResponse> OnUnlinkAppleResultEvent;
-        public event PlayFabRequestEvent<UnlinkBattleNetRequest> OnUnlinkBattleNetRequestEvent;
-        public event PlayFabResultEvent<EmptyResponse> OnUnlinkBattleNetResultEvent;
         public event PlayFabRequestEvent<UnlinkCustomIDRequest> OnUnlinkCustomIDRequestEvent;
         public event PlayFabResultEvent<UnlinkCustomIDResult> OnUnlinkCustomIDResultEvent;
         public event PlayFabRequestEvent<UnlinkFacebookAccountRequest> OnUnlinkFacebookAccountRequestEvent;

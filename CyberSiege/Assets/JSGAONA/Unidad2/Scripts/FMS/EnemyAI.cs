@@ -36,6 +36,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         private NavMeshAgent agent;
         private Vector3 initialPoint;
         private Quaternion initialRotation;
+        private Animator animController;
         private readonly Dictionary<string, ActiveState> ActiveStates = new ();
 
         // Propiedades
@@ -47,6 +48,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         // metodo en ejecutarse, se realiza la asignacion de componentes
         private void Awake(){
             agent = GetComponent<NavMeshAgent>();
+            animController = GetComponent<Animator>();
         }
 
 
@@ -162,19 +164,19 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
 
 
         // Metodo que permite ajustar la velocidad de movimiento del personaje
-        public void AdjustAgent(int idAdjut, float modifiedSpeed, float acceleration) {
+        public void AdjustAgent(int idAdjut, float modifiedSpeed = 1) {
             // Seleccionar el caso del ajuste
             switch (idAdjut) {
                 // Ajustar el agente sin velocidad IDLE
                 case 0:
                     agent.speed = 0;
-                    agent.stoppingDistance = 0;
+                    agent.stoppingDistance = 0.1f;
                     break;
                 
                 // Ajustar el agente con velocidad normal PATROL
                 case 1:
                     agent.speed = speedMovement * modifiedSpeed;
-                    agent.stoppingDistance = 0;
+                    agent.stoppingDistance = 0.1f;;
                     break;
 
 
@@ -184,6 +186,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
                     agent.stoppingDistance = behaviorTemplate.MinDistanceFromTarget;
                     break;
             }
+            animController.SetFloat("speed", agent.speed);
         }
 
 
@@ -279,6 +282,12 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
         }
 
 
+        public bool CanChase(){
+            // Verificar si el agente pierde el camino
+            return agent.pathStatus == NavMeshPathStatus.PathComplete;
+        }
+
+
         // Se emplea este metodo para gestionar el estado de persecucion
         public bool Chase(float distance) {
             // Se verifica si hay un obstaculo para seguirlo
@@ -340,6 +349,17 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
             timeStopMotion -= Time.deltaTime;
             // Se valida si el contador a llegado a cero o menos
             return timeStopMotion < 0;
+        }
+
+
+        // Se emplea este metodo para gestionar la animacion de hack
+        public void ManagerHack(bool status){
+            if(status) {
+                animController.SetTrigger("hack");
+                agent.ResetPath();
+            }else{
+                animController.SetTrigger("endHack");
+            }
         }
 
 

@@ -42,8 +42,8 @@ namespace Assets.JSGAONA.Unidad2.Scripts {
 
 
         // Metodo que permite actualizar la UI de la barra de salud
-        private void OnResourceChanged(int amount, int maxResourcePoint) {
-            PlayerView.SetResourcePoint(amount, maxResourcePoint);
+        private void OnResourceChanged(int amount, int maxResourcePoint, float cooldown) {
+            PlayerView.SetResourcePoint(amount, maxResourcePoint, cooldown);
         }
 
 
@@ -73,7 +73,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts {
 
         // Metodo que permite activar el pulso de anulacion desde la UI
         public void NullPulse() {
-            if(playerCombat != null) playerCombat.NullPulse();
+            if(playerCombat != null && !PlayerView.isCharging) playerCombat.NullPulse();
         }
     }
 }

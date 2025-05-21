@@ -7,6 +7,7 @@ namespace Assets.JSGAONA.Unidad2.Scripts.FMS {
     public class AIStateRangeAttack : AIStateBasicAttack {
 
         protected override void Attack() {
+            base.Attack();
             combatEnemy.UseWeapon();
         }
     }
